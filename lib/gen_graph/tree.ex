@@ -1,4 +1,48 @@
 defmodule GenGraph.Tree do
+  @moduledoc """
+  GenGraph.Tree provides hierarchical tree functionality with parent-child relationships.
+
+  Tree nodes extend GenGraph.Node functionality with additional features:
+  - Automatic parent-child relationship management
+  - Cycle detection to prevent circular references  
+  - Child node tracking and synchronization
+  - Automatic cleanup when child processes terminate
+
+  ## Tree State
+
+  In addition to GenGraph.Node state, each tree node maintains:
+  - `parent_pid`: PID of the parent node (nil for root nodes)
+  - `child_nodes`: List of child node PIDs
+
+  ## Usage
+
+      defmodule TreeNode do
+        use GenGraph.Tree, [
+          name: "",
+          data: nil
+        ]
+      end
+
+      # Create tree structure
+      root = TreeNode.new(name: "root")
+      child1 = TreeNode.new(name: "child1") 
+      child2 = TreeNode.new(name: "child2")
+
+      # Build tree relationships
+      root = TreeNode.add_child(root, child1)
+      root = TreeNode.add_child(root, child2)
+
+  ## Cycle Prevention
+
+  Tree nodes automatically prevent circular references by checking if a potential
+  child is an ancestor of the current node before allowing the relationship.
+
+  ## Automatic Synchronization
+
+  The `child_nodes` list is automatically synchronized with the `edges` list,
+  ensuring consistency between graph edges and tree relationships.
+  """
+
   use GenGraph.Node, [
     parent_pid: nil,
     child_nodes: []
@@ -60,6 +104,39 @@ defmodule GenGraph.Tree do
     Map.put(object, :child_nodes, child_nodes)
   end
 
+  @doc """
+  Adds a child node to a parent node, creating a parent-child relationship.
+
+  This function creates an edge from parent to child and sets up the tree relationship.
+  It prevents circular references by checking if the child is an ancestor of the parent.
+
+  ## Parameters
+
+  - `parent`: Parent node (PID or GenObject struct)
+  - `child`: Child node (PID or GenObject struct) 
+  - `opts`: Keyword list of options
+
+  ## Options
+
+  - `:weight` - Numeric weight for the edge (default: 0)
+
+  ## Examples
+
+      # Add child relationship
+      parent = TreeNode.add_child(parent, child)
+
+      # Add child with weight
+      parent = TreeNode.add_child(parent, child, weight: 1)
+
+  ## Returns
+
+  Returns the updated parent node struct, or `:error` if the operation would create a cycle.
+
+  ## Cycle Prevention
+
+  If adding the child would create a circular reference (child is an ancestor of parent),
+  the function returns `:error` and no relationship is created.
+  """
   def add_child(parent, child, opts \\ [])
   def add_child(%{pid: parent_pid}, child, opts) when is_pid(parent_pid) and is_list(opts) do
     add_child(parent_pid, child, opts)
@@ -72,6 +149,36 @@ defmodule GenGraph.Tree do
   end
   defoverridable add_child: 2, add_child: 3
 
+  @doc """
+  Asynchronously adds a child node to a parent node using GenServer.cast.
+
+  Similar to `add_child/3` but uses asynchronous messaging. Note that cycle 
+  detection is not performed in the async version.
+
+  ## Parameters
+
+  - `parent`: Parent node (PID or GenObject struct)
+  - `child`: Child node (PID or GenObject struct)
+  - `opts`: Keyword list of options
+
+  ## Options
+
+  - `:weight` - Numeric weight for the edge (default: 0)
+
+  ## Examples
+
+      # Async child addition
+      TreeNode.add_child!(parent, child)
+
+  ## Returns
+
+  Returns `:ok` immediately without waiting for completion.
+
+  ## Warning
+
+  This async version does not perform cycle detection, so use with caution
+  to avoid creating circular references.
+  """
   def add_child!(parent, child, opts \\ [])
   def add_child!(%{pid: parent_pid}, child, opts) when is_pid(parent_pid) and is_list(opts) do
     add_child!(parent_pid, child, opts)
@@ -84,6 +191,36 @@ defmodule GenGraph.Tree do
   end
   defoverridable add_child!: 2, add_child!: 3
 
+  @doc """
+  Removes a child node from a parent node, breaking the parent-child relationship.
+
+  This function removes the edge from parent to child and clears the child's parent_pid.
+
+  ## Parameters
+
+  - `parent`: Parent node (PID or GenObject struct)
+  - `child`: Child node (PID or GenObject struct)
+  - `opts`: Keyword list of options
+
+  ## Options
+
+  - `:weight` - Specific weight of relationship to remove (default: 0)
+
+  ## Examples
+
+      # Remove child relationship
+      parent = TreeNode.remove_child(parent, child)
+
+  ## Returns
+
+  Returns the updated parent node struct.
+
+  ## Side Effects
+
+  - Removes the edge from parent's edges list
+  - Removes child PID from parent's child_nodes list  
+  - Sets child's parent_pid to nil
+  """
   def remove_child(parent, child, opts \\ [])
   def remove_child(%{pid: parent_pid}, child, opts) when is_pid(parent_pid) and is_list(opts) do
     remove_child(parent_pid, child, opts)
@@ -96,6 +233,31 @@ defmodule GenGraph.Tree do
   end
   defoverridable remove_child: 2, remove_child: 3
 
+  @doc """
+  Asynchronously removes a child node from a parent node using GenServer.cast.
+
+  Similar to `remove_child/3` but uses asynchronous messaging for better performance
+  when you don't need to wait for confirmation of the relationship removal.
+
+  ## Parameters
+
+  - `parent`: Parent node (PID or GenObject struct)
+  - `child`: Child node (PID or GenObject struct)
+  - `opts`: Keyword list of options
+
+  ## Options
+
+  - `:weight` - Specific weight of relationship to remove (default: 0)
+
+  ## Examples
+
+      # Async child removal
+      TreeNode.remove_child!(parent, child)
+
+  ## Returns
+
+  Returns `:ok` immediately without waiting for completion.
+  """
   def remove_child!(parent, child, opts \\ [])
   def remove_child!(%{pid: parent_pid}, child, opts) when is_pid(parent_pid) and is_list(opts) do
     remove_child!(parent_pid, child, opts)
