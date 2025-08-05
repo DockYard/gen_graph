@@ -62,8 +62,8 @@ defmodule GenGraph.MixProject do
   defp deps do
     [
       {:inflex, "~> 2.1"},
-      {:inherit, path: "../inherit", override: true},
-      {:gen_object, path: "../gen_object"},
+      {:inherit, "~> 0.2.1"},
+      {:gen_object, "~> 0.2.0"},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
   end
