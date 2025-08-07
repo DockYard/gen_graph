@@ -40,6 +40,11 @@ defmodule GenGraph.Node do
   all connected nodes through process monitoring.
   """
 
+  import GenGraph, only: [
+    to_pid: 1,
+    is_node_or_pid: 1
+  ]
+
   use GenObject, [
     refs: %{},
     edges: []
@@ -77,17 +82,10 @@ defmodule GenGraph.Node do
 
   Returns the updated `from` node struct.
   """
-  def add_edge(from, to, opts \\ [])
-  def add_edge(%{pid: from_pid}, %{pid: to_pid}, opts) when is_pid(from_pid) and is_pid(to_pid) and is_list(opts) do
-    add_edge(from_pid, to_pid, opts)
-  end
-  def add_edge(%{pid: pid}, to, opts) when is_pid(pid) and is_list(opts) do
-    add_edge(pid, to, opts)
-  end
-  def add_edge(from, %{pid: pid}, opts) when is_pid(pid) and is_list(opts) do
-    add_edge(from, pid, opts)
-  end
-  def add_edge(from, to, opts) when is_pid(from) and is_pid(to) and is_list(opts) do
+  def add_edge(from, to, opts \\ []) when is_node_or_pid(from) and is_node_or_pid(to) and is_list(opts) do
+    from = to_pid(from)
+    to = to_pid(to)
+
     if Keyword.get(opts, :bidirectional, false) do
       GenServer.call(to, {:add_edge, from, weight: Keyword.get(opts, :weight, 0)})
     end
@@ -122,17 +120,10 @@ defmodule GenGraph.Node do
 
   Returns `:ok` immediately without waiting for completion.
   """
-  def add_edge!(from, to, opts \\ [])
-  def add_edge!(%{pid: from_pid}, %{pid: to_pid}, opts) when is_pid(from_pid) and is_pid(to_pid) and is_list(opts) do
-    add_edge!(from_pid, to_pid, opts)
-  end
-  def add_edge!(%{pid: pid}, to, opts) when is_pid(pid) and is_list(opts) do
-    add_edge!(pid, to, opts)
-  end
-  def add_edge!(from, %{pid: pid}, opts) when is_pid(pid) and is_list(opts) do
-    add_edge!(from, pid, opts)
-  end
-  def add_edge!(from, to, opts) when is_pid(from) and is_pid(to) and is_list(opts) do
+  def add_edge!(from, to, opts \\ []) when is_node_or_pid(from) and is_node_or_pid(to) and is_list(opts) do
+    from = to_pid(from)
+    to = to_pid(to)
+
     if Keyword.get(opts, :bidirectional, false) do
       GenServer.cast(to, {:add_edge, from, weight: Keyword.get(opts, :weight, 0)})
     end
@@ -169,18 +160,11 @@ defmodule GenGraph.Node do
 
   Returns the updated `from` node struct.
   """
-  def remove_edge(from, to, opts \\ [])
-  def remove_edge(%{pid: from_pid}, %{pid: to_pid}, opts) when is_pid(from_pid) and is_pid(to_pid) and is_list(opts) do
-    remove_edge(from_pid, to_pid, opts)
-  end
-  def remove_edge(%{pid: pid}, to, opts) when is_pid(pid) and is_list(opts) do
-    remove_edge(pid, to, opts)
-  end
-  def remove_edge(from, %{pid: pid}, opts) when is_pid(pid) and is_list(opts) do
-    remove_edge(from, pid, opts)
-  end
-  def remove_edge(from, to, opts) when is_pid(from) and is_pid(to) and is_list(opts) do
+  def remove_edge(from, to, opts \\ []) when is_node_or_pid(from) and is_node_or_pid(to) and is_list(opts) do
+    from = to_pid(from)
+    to = to_pid(to)
     weight = Keyword.get(opts, :weight, 0)
+
     if Keyword.get(opts, :bidirectional, false) do
       GenServer.call(to, {:remove_edge, from, weight: weight})
     end
@@ -215,17 +199,10 @@ defmodule GenGraph.Node do
 
   Returns `:ok` immediately without waiting for completion.
   """
-  def remove_edge!(from, to, opts \\ [])
-  def remove_edge!(%{pid: from_pid}, %{pid: to_pid}, opts) when is_pid(from_pid) and is_pid(to_pid) and is_list(opts) do
-    remove_edge!(from_pid, to_pid, opts)
-  end
-  def remove_edge!(%{pid: pid}, to, opts) when is_pid(pid) and is_list(opts) do
-    remove_edge!(pid, to, opts)
-  end
-  def remove_edge!(from, %{pid: pid}, opts) when is_pid(pid) and is_list(opts) do
-    remove_edge!(from, pid, opts)
-  end
-  def remove_edge!(from, to, opts) when is_pid(from) and is_pid(to) and is_list(opts) do
+  def remove_edge!(from, to, opts \\ []) when is_node_or_pid(from) and is_node_or_pid(to) and is_list(opts) do
+    from = to_pid(from)
+    to = to_pid(to)
+
     if Keyword.get(opts, :bidirectional, false) do
       GenServer.cast(to, {:remove_edge, from, weight: Keyword.get(opts, :weight, 0)})
     end
