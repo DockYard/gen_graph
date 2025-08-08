@@ -18,7 +18,7 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
 ```elixir
 def deps do
   [
-    {:gen_graph, "~> 0.1.0"}
+    {:gen_graph, "~> 0.1.1"}
   ]
 end
 ```

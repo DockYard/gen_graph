@@ -2,7 +2,7 @@ defmodule GenGraph.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/DockYard/gen_graph"
-  @version "0.1.0"
+  @version "0.1.1"
 
   def project do
     [
@@ -62,8 +62,7 @@ defmodule GenGraph.MixProject do
   defp deps do
     [
       {:inflex, "~> 2.1"},
-      {:inherit, "~> 0.2.1"},
-      {:gen_object, "~> 0.2.0"},
+      {:gen_object, "~> 0.2.1"},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
   end
