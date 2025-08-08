@@ -362,14 +362,13 @@ defmodule GenGraph.Tree do
   end
 
   defp do_insert_before(object, new_child_pid, reference_child_pid, opts) do
-    new_child = GenGraph.Node.get(new_child_pid)
-
     if Enum.member?(object.child_nodes, reference_child_pid) do
+      new_child = GenGraph.Node.get(new_child_pid)
       object = cond do
         (new_child.parent_pid == self()) ->
           do_remove_child(object, new_child_pid, opts)
         is_pid(new_child.parent_pid) ->
-          GenServer.call(new_child.parent_pid, {:remove_child, new_child, []})
+          GenServer.cast(new_child.parent_pid, {:remove_child, new_child, []})
           object
         true -> object
       end
