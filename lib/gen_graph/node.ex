@@ -45,6 +45,8 @@ defmodule GenGraph.Node do
     is_node_or_pid: 1
   ]
 
+  require GenGraph
+
   use GenObject, [
     refs: %{},
     edges: []
