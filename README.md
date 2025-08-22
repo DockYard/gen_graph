@@ -263,7 +263,7 @@ Each node automatically gets GenObject methods like:
 - `new/1` - Create a new node process
 - `get/1` - Retrieve current node state
 - `get/2` - Get specific field value
-- `put/3` - Set field value
+- `set/3` - Set field value
 
 ## Testing
 

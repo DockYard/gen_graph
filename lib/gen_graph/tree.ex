@@ -262,7 +262,7 @@ defmodule GenGraph.Tree do
     else
       {:reply, object, object} = handle_call({:add_edge, child_pid, opts}, from, object)
       object = do_append_child(object, child_pid, opts)
-      GenServer.cast(child_pid, {:put, :parent_pid, self()})
+      GenServer.cast(child_pid, {:set, :parent_pid, self()})
       {:reply, object, object}
     end
   end
@@ -275,7 +275,7 @@ defmodule GenGraph.Tree do
         :error -> {:reply, :error, object}
         object ->
           {:reply, object, object} = handle_call({:add_edge, new_child_pid, opts}, from, object)
-          GenServer.cast(new_child_pid, {:put, :parent_pid, self()})
+          GenServer.cast(new_child_pid, {:set, :parent_pid, self()})
           {:reply, object, object}
       end
     end
@@ -298,7 +298,7 @@ defmodule GenGraph.Tree do
         :error -> {:reply, :error, object}
         object ->
           {:reply, object, object} = handle_call({:add_edge, new_child_pid, opts}, from, object)
-          GenServer.cast(new_child_pid, {:put, :parent_pid, self()})
+          GenServer.cast(new_child_pid, {:set, :parent_pid, self()})
           {:reply, object, object}
       end
     end
@@ -323,7 +323,7 @@ defmodule GenGraph.Tree do
         :error -> {:noreply, object}
         object ->
           {:noreply, object} = handle_cast({:add_edge, new_child_pid, opts}, object)
-          GenServer.cast(new_child_pid, {:put, :parent_pid, self()})
+          GenServer.cast(new_child_pid, {:set, :parent_pid, self()})
           {:noreply, object}
       end
     end
@@ -345,7 +345,7 @@ defmodule GenGraph.Tree do
         :error -> {:noreply, object}
         object ->
           {:noreply, object} = handle_cast({:add_edge, new_child_pid, opts}, object)
-          GenServer.cast(new_child_pid, {:put, :parent_pid, self()})
+          GenServer.cast(new_child_pid, {:set, :parent_pid, self()})
           {:noreply, object}
       end
     end
@@ -388,7 +388,7 @@ defmodule GenGraph.Tree do
   end
 
   defp do_remove_child(%{child_nodes: child_nodes} = object, child_pid, _opts) do
-    GenServer.cast(child_pid, {:put_lazy, :parent_pid, fn(child) ->
+    GenServer.cast(child_pid, {:set_lazy, :parent_pid, fn(child) ->
       if child.parent_pid == object.pid do
         nil
       else
@@ -405,7 +405,7 @@ defmodule GenGraph.Tree do
   end
 
   defp do_replace_child(object, new_child_pid, old_child_pid, _opts) do
-    GenServer.cast(old_child_pid, {:put_lazy, :parent_pid, fn(child) ->
+    GenServer.cast(old_child_pid, {:set_lazy, :parent_pid, fn(child) ->
       if child.parent_pid == object.pid do
         nil
       else
